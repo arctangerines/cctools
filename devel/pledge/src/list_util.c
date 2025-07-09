@@ -46,3 +46,70 @@ find_path_in_list(struct list *c,
 	}
 	return NULL;
 }
+
+struct path_access *
+update_path_perms(struct path_access *a,
+		uint8_t access_fl)
+{
+	if (a == NULL) {
+		// they gave us an empty node...
+		return NULL;
+	}
+
+	// We want this to only be positive, because if its false, we dont want to
+	// changeone that was true to false
+	if (access_fl & READ_ACCESS) {
+		a->read = true;
+	}
+	if (access_fl & WRITE_ACCESS) {
+		a->write = true;
+	}
+	if (access_fl & STAT_ACCESS) {
+		a->stat = true;
+	}
+	// USELESS?: Maybe remove this lol
+	return a;
+}
+/// This function grabs a path and its access flags and adds it to a cctools list
+/// structure built at runtime creates, if theres no list it creates one If the path
+/// already exists, it updates the permissions
+void add_path_to_contract_list(struct list **r,
+		char *path,
+		uint8_t access_fl)
+{
+	if (*r == NULL) {
+		*r = list_create();
+		new_path_access_node(*r, path, access_fl);
+		return;
+	}
+	struct list *c = *r;
+	struct path_access *a = find_path_in_list(c, path);
+	if (a == NULL) {
+		new_path_access_node(c, path, access_fl);
+	} else
+		update_path_perms(a, access_fl);
+}
+
+/// Dumps our contract into the contract file
+void generate_contract_from_list(FILE *f, struct list *r)
+{
+	list_first_item(r);
+	void *x;
+	char perms[8] = {0};
+	while ((x = list_next_item(r))) {
+		struct path_access *a = x;
+		if (a->stat) {
+			strcat(perms, "S");
+		}
+		if (a->read && a->write) {
+			strcat(perms, "+");
+		} else if (a->read) {
+			strcat(perms, "R");
+		} else if (a->write) {
+			strcat(perms, "W");
+		}
+		fprintf(f, "%-13s %-30s\n", perms, a->pathname);
+		memset(perms, 0, sizeof(perms)); // reset
+	}
+	fflush(f);
+}

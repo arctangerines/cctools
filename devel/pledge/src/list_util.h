@@ -2,6 +2,7 @@
 #define PL_LIST_UTIL
 #include <stdbool.h>
 #include <stdint.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -37,4 +38,19 @@ void destroy_contract_list(struct list *c);
 struct path_access *
 find_path_in_list(struct list *c,
 		char *path);
+
+/// Update the path access permissions for the path passed to the function
+struct path_access *
+update_path_perms(struct path_access *a,
+		uint8_t access_fl);
+
+/// This function grabs a path and its access flags and adds it to a cctools list
+/// structure built at runtime creates, if theres no list it creates one If the path
+/// already exists, it updates the permissions
+void add_path_to_contract_list(struct list **r,
+		char *path,
+		uint8_t access_fl);
+
+/// Dumps our contract into the contract file
+void generate_contract_from_list(FILE *f, struct list *r);
 #endif
