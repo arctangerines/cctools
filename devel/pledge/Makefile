@@ -21,8 +21,8 @@ BUILDDIR = ./build
 # LDFLAGS += $(CCTOOLS_HOME)/dttools/src/libdttools.a
 
 # COMMON_SRCS = src/pl_list.c src/util.c
-COMMON_SRCS = src/util.c src/list_util.c
-COMMON_SRCS += $(CCTOOLS_HOME)/dttools/src/list.c
+COMMON_SRCS = src/list_util.c src/util.c
+COMMON_SRCS += $(CCTOOLS_HOME)/dttools/src/libdttools.a
 
 ENFORCER = $(BUILDDIR)/libenforcer.so
 ENF_LDFLAGS += $(LDFLAGS) -ldl -shared
@@ -40,28 +40,24 @@ PL_OBJ = $(BUILDDIR)/pledge.o
 
 LOCAL_CFLAGS += -std=gnu11
 
-
+LDFLAGS += -lm
 
 all: $(PLEDGE)
 
 $(PLEDGE): $(ENFORCER_H) $(PL_OBJ)
-	#$(CC) $(CCTOOLS_INTERNAL_CLOCAL_CFLAGS) $(PL_LOCAL_CFLAGS) $(PL_LDFLAGS) $(PL_OBJ) $(COMMON_SRCS) -o $(PLEDGE)
-	$(CC) $(PL_LOCAL_CFLAGS) $(PL_LDFLAGS) $(PL_OBJ) $(COMMON_SRCS) -o $(PLEDGE)
+	$(CC) $(PL_LOCAL_CFLAGS) $(PL_OBJ) $(COMMON_SRCS) -o $(PLEDGE) $(PL_LDFLAGS)
 
 $(ENFORCER_H): $(ENFORCER)
 	xxd -i -n minienforcer $(BUILDDIR)/libenforcer.so > src/libenforcer.h
 
 $(ENFORCER): $(ENF_OBJ)
-	#$(CC) $(CCTOOLS_INTERNAL_CLOCAL_CFLAGS) $(ENF_LOCAL_CFLAGS) $(ENF_LDFLAGS) $(ENF_OBJ) $(COMMON_SRCS) -o $(ENFORCER)
-	$(CC) $(ENF_LOCAL_CFLAGS) $(ENF_LDFLAGS) $(ENF_OBJ) $(COMMON_SRCS) -o $(ENFORCER)
+	$(CC) $(ENF_LOCAL_CFLAGS) $(ENF_OBJ) $(COMMON_SRCS) -o $(ENFORCER) $(ENF_LDFLAGS)
 
 $(PL_OBJ) : $(PL_SRCS) | $(BUILDDIR)
-	#$(CC) $(CCTOOLS_INTERNAL_CLOCAL_CFLAGS) $(PL_LOCAL_CFLAGS) -c $< -o $@
 	$(CC) $(PL_LOCAL_CFLAGS) -c $< -o $@
 
 # # Order only build dir
 $(ENF_OBJ) : $(ENF_SRCS) | $(BUILDDIR)
-	#$(CC) $(CCTOOLS_INTERNAL_CLOCAL_CFLAGS) $(ENF_LOCAL_CFLAGS) -c $< -o $@
 	$(CC) $(ENF_LOCAL_CFLAGS) -c $< -o $@
 
 $(BUILDDIR):
