@@ -1,0 +1,1 @@
+option('cctools_py3_path', type: 'string', value: 'python3')
