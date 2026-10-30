@@ -4,11 +4,15 @@ project(
   version : '0.1',
   default_options : {
     'warning_level' : '3',
-    'prefix' : meson.current_source_dir(),
+    'prefix' : meson.current_build_dir(),
     },
 )
 
 cctools_py3_path = get_option('cctools_py3_path')
+message(get_option('bindir'))
+message(get_option('prefix'))
+
+poncho_dep = declare_dependency(include_directories : './')
 
 # Install directory
 configure_file(

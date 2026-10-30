@@ -1,0 +1,2 @@
+option('cctools_base_ccflags_opt', type: 'array', value: [])
+option('cctools_internal_ccflags_opt', type: 'array', value: [])

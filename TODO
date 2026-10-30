@@ -1,0 +1,7 @@
+* Test that directories are inherinted when using the input main project meson
+* Ensure that the option variablesi n meson_options have the '_opt' postfix
+* Need to add testing for the meson
+    - The test can be added like this:
+        1. Make a file out of configure_file()
+        2. Use that in find_program()
+        3. The program returned by find_program() is used for test()
