@@ -1972,14 +1972,11 @@ static struct rmsummary *total_resources_needed(struct vine_manager *q)
 	struct rmsummary *total = rmsummary_create(0);
 
 	/* for waiting tasks, we use what they would request if dispatched right now. */
-	struct skip_list_cursor *cur = skip_list_cursor_create(q->ready_tasks);
-	skip_list_seek(cur, 0);
-	SKIP_LIST_ITERATE(cur, t)
+	SKIP_LIST_ITERATE(q->ready_tasks, t)
 	{
 		const struct rmsummary *s = vine_manager_task_resources_min(q, t);
 		rmsummary_add(total, s);
 	}
-	skip_list_cursor_delete(cur);
 
 	/* for running tasks, we use what they have been allocated already. */
 	char *key;
@@ -2300,6 +2297,8 @@ static struct jx *manager_to_jx(struct vine_manager *q)
 	jx_insert_integer(j, "tasks_recovery", info.tasks_recovery);
 	jx_insert_integer(j, "tasks_left", q->num_tasks_left);
 
+	jx_insert_integer(j, "wait_for_workers", q->wait_for_workers);
+
 	jx_insert_integer(j, "tasks_submitted", info.tasks_submitted);
 	jx_insert_integer(j, "tasks_dispatched", info.tasks_dispatched);
 	jx_insert_integer(j, "tasks_done", info.tasks_done);
@@ -2425,6 +2424,8 @@ static struct jx *manager_lean_to_jx(struct vine_manager *q)
 	// additional task information for vine_factory
 	jx_insert_integer(j, "tasks_on_workers", info.tasks_on_workers);
 	jx_insert_integer(j, "tasks_left", q->num_tasks_left);
+
+	jx_insert_integer(j, "wait_for_workers", q->wait_for_workers);
 
 	// capacity information the factory needs
 	jx_insert_integer(j, "capacity_tasks", info.capacity_tasks);
@@ -3695,7 +3696,7 @@ static int send_one_task_with_cr(struct vine_manager *q, struct skip_list_cursor
 
 	int iter_count = 0;
 
-	SKIP_LIST_ITERATE(cur, t)
+	SKIP_LIST_ITERATE_CURSOR(cur, t)
 	{
 		if (iter_count >= iter_depth) {
 			break;
@@ -5784,9 +5785,7 @@ int vine_hungry_computation(struct vine_manager *q)
 	int iter_depth = MIN(q->attempt_schedule_depth, tasks_waiting);
 	int sampled_tasks_waiting = 0;
 
-	struct skip_list_cursor *cur = skip_list_cursor_create(q->ready_tasks);
-	skip_list_seek(cur, 0);
-	SKIP_LIST_ITERATE(cur, t)
+	SKIP_LIST_ITERATE(q->ready_tasks, t)
 	{
 		if (sampled_tasks_waiting >= iter_depth) {
 			break;
@@ -5798,7 +5797,6 @@ int vine_hungry_computation(struct vine_manager *q)
 		ready_task_gpus += t->resources_requested->gpus > 0 ? t->resources_requested->gpus : avg_commited_tasks_gpus;
 		sampled_tasks_waiting++;
 	}
-	skip_list_cursor_delete(cur);
 
 	int64_t avg_ready_tasks_cores = DIV_INT_ROUND_UP(ready_task_cores, sampled_tasks_waiting);
 	int64_t avg_ready_tasks_memory = DIV_INT_ROUND_UP(ready_task_memory, sampled_tasks_waiting);
