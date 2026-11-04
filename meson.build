@@ -112,36 +112,44 @@ cctools_base_ccflags = [
 
   # Currently undefined 
   # FIXME: The ways to get these are currently undefined
-  '-DCCTOOLS_COMMIT=\'""\'',
-  '-DCCTOOLS_CONFIGURE_ARGUMENTS=\'""\'', # Requires some escaping the output of makefile
+  # NOTE: The formatting on these quotes is different from the makefile implementation
+  #       On there the command ran would be, for example,
+  #           gcc -DCCTOOLS_COMMIT='"ABC"',
+  #       but the way we are writing it the command would be
+  #           gcc '-DCCTOOLS_COMMIT="ABC"',
+  #       it seems this meson version works fine
+  #       Not only that but if we define this on here like this:
+  #           '-DCCTOOLS_COMMIT='"ABC"'
+  #       it will be replaced with the following when executing the command
+  #           '-DCCTOOLS_COMMIT='"'"'"ABC"'"'"''
+  '-DCCTOOLS_COMMIT=""',
+  '-DCCTOOLS_CONFIGURE_ARGUMENTS=""', # Requires some escaping the output of makefile
   # FIXME: Pending options in configure script/meson_options
-  '-DCCTOOLS_CVMFS_BUILD_FLAGS=\'""\'',
+  '-DCCTOOLS_CVMFS_BUILD_FLAGS=""',
 
      '-D_GNU_SOURCE',
      '-D_REENTRANT',
   ]
 # Debugging flag should be set directly by meson
 
-
-
 getdate_cmd = run_command('date', '+%Y-%m-%d %H:%M:%S %z', check: true)
 getdate_out = getdate_cmd.stdout().strip()
-getdate_def = '-DBUILD_DATE=' + '\'"' + getdate_out + '"\''
+getdate_def = '-DBUILD_DATE=' + '"' + getdate_out + '"'
 cctools_base_ccflags += getdate_def
 ## Perhaps will need some changing
-getreldate_def = '-DCCTOOLS_RELEASE_DATE=' + '\'"' + getdate_out + '"\''
+getreldate_def = '-DCCTOOLS_RELEASE_DATE=' + '"' + getdate_out + '"'
 cctools_base_ccflags += getreldate_def 
 
 gethost_cmd = run_command('uname', '-n', check: true)
 gethost_out = gethost_cmd.stdout().strip()
-gethost_def = '-DBUILD_HOST='+ '\'"' + gethost_out + '"\''
+gethost_def = '-DBUILD_HOST='+ '"' + gethost_out + '"'
 cctools_base_ccflags += gethost_def
 
 #'-DBUILD_USER=', # BUILD_USER="$USER"
 # AFAIK meson doesnt have a way to get environment variables
 getuser_cmd = run_command('sh', '-c', 'echo $USER', check: true)
 getuser_out = getuser_cmd.stdout().strip() 
-getuser_def = '-DBUILD_USER=' + '\'"' + getuser_out + '"\''
+getuser_def = '-DBUILD_USER=' + '"' + getuser_out + '"'
 cctools_base_ccflags += getuser_def
 
 getopsys_cmd = run_command('sh', '-c', 'uname -s | tr \[a-z\] \[A-Z\] | awk -F_ \'{print $1}\'', check: true)
@@ -158,16 +166,17 @@ cctools_base_ccflags += getcpu_def
 # NOTE: Having this on a hardcoded flag seems excessive
 getsysinfo_cmd = run_command('sh', '-c', 'uname -a | sed s/#/\\#/ | sed s/\$/$$/', check: true)
 getsysinfo_out = getsysinfo_cmd.stdout().strip()
-getsysinfo_def = '-DCCTOOLS_SYSTEM_INFORMATION=' + '\'"' + getsysinfo_out + '"\''
+getsysinfo_def = '-DCCTOOLS_SYSTEM_INFORMATION=' + '"' + getsysinfo_out + '"'
 cctools_base_ccflags += getsysinfo_def
 
-cctools_base_ccflags += '-DCCTOOLS_SOURCE=' + '\'"' + cctools_release + '"\''
+cctools_base_ccflags += '-DCCTOOLS_SOURCE=' + '"' + cctools_release + '"'
 
-cctools_base_ccflags += '-DCCTOOLS_VERSION=' + '\'"' + cctools_version + '"\''
+
+cctools_base_ccflags += '-DCCTOOLS_VERSION=' + '"' + cctools_version + '"'
 cctools_base_ccflags += '-DCCTOOLS_VERSION_MAJOR=' + cctools_version_major
 cctools_base_ccflags += '-DCCTOOLS_VERSION_MINOR=' + cctools_version_minor
 cctools_base_ccflags += '-DCCTOOLS_VERSION_MICRO=' + cctools_version_micro
-cctools_base_ccflags += '-DINSTALL_PATH=' + '\'"' + cctools_prefix + '"\''
+cctools_base_ccflags += '-DINSTALL_PATH=' + '"' + cctools_prefix + '"'
 
 message(cctools_base_ccflags)
 

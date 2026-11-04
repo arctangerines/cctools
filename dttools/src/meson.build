@@ -198,4 +198,13 @@ static_library('dttools', sources: dttools_srcs, dependencies: [
   resource_monitor_dep,
   taskvine_dep,
   work_queue_dep,
-  ])
+  ],
+  install: true, #meson requires this for it to not be a thin archive... :/
+  )
+
+# TODO: Targets
+# - [x] libdttools.a
+# - [] libforce_halt_enospc.so
+# - [] catalog_query
+# - [] catalog_update
+# - [] auth_test
