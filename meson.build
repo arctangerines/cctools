@@ -41,8 +41,8 @@ cctools_base_ccflags = [
   '-D__EXTENSIONS__',
   '-D_LARGEFILE64_SOURCE',
   '-D__LARGE64_FILES',
-  '-Wall',
-  '-Wextra',
+  # '-Wall', # Added by the warning_level option already
+  # '-Wextra', # Same as -Wall
   '-Wno-unused-result',
   '-fPIC',
   #### Obtained by using 'check_compiler_flag' (in helper shell script)

@@ -1,3 +1,10 @@
+# TODO: Targets
+# - [x] libdttools.a
+# - [x] libforce_halt_enospc.so
+# - [x] catalog_query
+# - [x] catalog_update
+# - [x] auth_test
+
 project('libdttools',
         'c',
         default_options: {
@@ -135,6 +142,8 @@ dttools_srcs = [
     'xpu_tracker.c',
     'xxmalloc.c']
 
+force_halt_enospc_src = ['libforce_halt_enospc.c']
+
 cctools_base_ccflags = get_option('cctools_base_ccflags_opt')
 if cctools_base_ccflags.length() > 1 
   message('Found CCTools Base CC Flags')
@@ -186,8 +195,7 @@ poncho_dep = poncho_proj.get_variable('poncho_dep')
 # cctools_project_dirs = get_option('cctools_project_dirs_opt')
 # include_directories(cctools_project_dirs)
 
-static_library('dttools', sources: dttools_srcs, dependencies: [
-  deltadb_dep,
+all_deps = [deltadb_dep,
   batch_job_dep,
   chirp_dep,
   ftp_lite_dep,
@@ -198,13 +206,44 @@ static_library('dttools', sources: dttools_srcs, dependencies: [
   resource_monitor_dep,
   taskvine_dep,
   work_queue_dep,
-  ],
+  ]
+
+libdttools = static_library('dttools', sources: dttools_srcs, dependencies: all_deps,
   install: true, #meson requires this for it to not be a thin archive... :/
   )
 
-# TODO: Targets
-# - [x] libdttools.a
-# - [] libforce_halt_enospc.so
-# - [] catalog_query
-# - [] catalog_update
-# - [] auth_test
+common_link_args = ['-lssl',
+                    '-lcrypto',
+                    '-lresolv',
+                    '-lrt',
+                    '-ldl',
+                    '-lz',
+                    '-lstdc++',
+                    '-lpthread',
+                    '-lz',
+                    '-lc',
+                    '-lm',
+                 ]
+
+shared_library('force_halt_enospc', sources: force_halt_enospc_src, 
+               dependencies: all_deps,
+               # I think these can be specified with depdencies: + 
+               # the objects returned by compiler.find_library()
+               link_args : common_link_args)
+catalog_query_src = ['catalog_query.c', 'catalog_query_tool.c',]
+exe_link_args = common_link_args + ['-Xlinker', 
+                 '-Bstatic', 
+                 '-Xlinker', '-Bdynamic', 
+                 # '-Xlinker', '--as-needed', 
+                 '-Wl,--no-warn-search-mismatch']
+executable('catalog_query', sources: catalog_query_src,
+               link_args : exe_link_args,
+               link_with : libdttools)
+
+executable('catalog_update', sources: ['catalog_update.c'],
+               link_args : exe_link_args,
+               link_with : libdttools)
+
+executable('auth_test', sources: ['auth_test.c'],
+               link_args : exe_link_args,
+               link_with : libdttools)
