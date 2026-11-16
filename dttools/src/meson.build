@@ -13,6 +13,20 @@ project('libdttools',
           },
         )
 
+cctools_base_ccflags = get_option('cctools_base_ccflags_opt')
+if cctools_base_ccflags.length() > 1 
+  message('Found CCTools Base CC Flags')
+  add_project_arguments(cctools_base_ccflags, language: 'c')
+endif
+
+cctools_internal_ccflags = get_option('cctools_internal_ccflags_opt')
+if cctools_internal_ccflags.length() > 1
+  message('Found CCTools Internal CC Flags')
+  add_project_arguments(cctools_internal_ccflags, language: 'c')
+endif
+
+cctools_include_dirs = get_option('cctools_include_dirs_opt')
+
 dttools_srcs = [
     'address.c',
     'auth.c',
@@ -144,71 +158,8 @@ dttools_srcs = [
 
 force_halt_enospc_src = ['libforce_halt_enospc.c']
 
-cctools_base_ccflags = get_option('cctools_base_ccflags_opt')
-if cctools_base_ccflags.length() > 1 
-  message('Found CCTools Base CC Flags')
-  add_project_arguments(cctools_base_ccflags, language: 'c')
-endif
-
-cctools_internal_ccflags = get_option('cctools_internal_ccflags_opt')
-if cctools_internal_ccflags.length() > 1
-  message('Found CCTools Internal CC Flags')
-  add_project_arguments(cctools_internal_ccflags, language: 'c')
-endif
-
-# Instead of doing manual includes through include_directories()
-# we use subprojects
-
-batch_job_proj = subproject('batch_job')
-batch_job_dep = batch_job_proj.get_variable('batch_job_dep')
-
-taskvine_proj = subproject('taskvine')
-taskvine_dep = taskvine_proj.get_variable('taskvine_dep')
-
-grow_proj = subproject('grow')
-grow_dep = grow_proj.get_variable('grow_dep')
-
-makeflow_proj = subproject('makeflow')
-makeflow_dep = makeflow_proj.get_variable('makeflow_dep')
-
-work_queue_proj = subproject('work_queue')
-work_queue_dep = work_queue_proj.get_variable('work_queue_dep')
-
-ftp_lite_proj = subproject('ftp_lite')
-ftp_lite_dep = ftp_lite_proj.get_variable('ftp_lite_dep')
-
-parrot_proj = subproject('parrot')
-parrot_dep = parrot_proj.get_variable('parrot_dep')
-
-resource_monitor_proj = subproject('resource_monitor')
-resource_monitor_dep = resource_monitor_proj.get_variable('resource_monitor_dep')
-
-chirp_proj = subproject('chirp')
-chirp_dep = chirp_proj.get_variable('chirp_dep')
-
-deltadb_proj = subproject('deltadb')
-deltadb_dep = deltadb_proj.get_variable('deltadb_dep')
-
-poncho_proj = subproject('poncho')
-poncho_dep = poncho_proj.get_variable('poncho_dep')
-
-# cctools_project_dirs = get_option('cctools_project_dirs_opt')
-# include_directories(cctools_project_dirs)
-
-all_deps = [deltadb_dep,
-  batch_job_dep,
-  chirp_dep,
-  ftp_lite_dep,
-  grow_dep,
-  makeflow_dep,
-  parrot_dep,
-  poncho_dep,
-  resource_monitor_dep,
-  taskvine_dep,
-  work_queue_dep,
-  ]
-
-libdttools = static_library('dttools', sources: dttools_srcs, dependencies: all_deps,
+libdttools = static_library('dttools', sources: dttools_srcs, 
+  include_directories: cctools_include_dirs,
   install: true, #meson requires this for it to not be a thin archive... :/
   )
 
@@ -226,7 +177,7 @@ common_link_args = ['-lssl',
                  ]
 
 shared_library('force_halt_enospc', sources: force_halt_enospc_src, 
-               dependencies: all_deps,
+               include_directories: cctools_include_dirs,
                # I think these can be specified with depdencies: + 
                # the objects returned by compiler.find_library()
                link_args : common_link_args)

@@ -1,3 +1,7 @@
+# TODOs/FIXMEs/BUGs
+# FIXME: the *_dep variables inside of dttools and taskvine(so far) need to be
+#        made global, probably passed down through an array?
+
 project('cctools',
   'c', 'cpp',
   meson_version : '1.12.1',
@@ -181,11 +185,15 @@ cctools_base_ccflags += '-DINSTALL_PATH=' + '"' + cctools_prefix + '"'
 message(cctools_base_ccflags)
 
 
+# I don't think this is actually necessary
+# Some of these go unused...
 cctools_project_dirs = [
   #### Hardcoded
   '../../dttools/src',
   '../../batch_job/src',
   '../../taskvine/src',
+  '../../taskvine/src/manager',
+  '../../taskvine/src/worker',
   '../../grow/src',
   '../../makeflow/src',
   '../../work_queue/src',
@@ -207,6 +215,7 @@ dttools = subproject('dttools',
     'prefix' : cctools_prefix,
     'cctools_base_ccflags_opt' : cctools_base_ccflags,
     'cctools_internal_ccflags_opt' : cctools_internal_ccflags,
+    'cctools_include_dirs_opt' : cctools_project_dirs,
     }
   )
 
@@ -223,7 +232,13 @@ poncho = subproject('poncho',
   )
 
 resource_monitor = subproject('resource_monitor')
-taskvine = subproject('taskvine')
+taskvine = subproject('taskvine',
+  default_options : {
+    'cctools_base_ccflags_opt' : cctools_base_ccflags,
+    'cctools_internal_ccflags_opt' : cctools_internal_ccflags,
+    'cctools_include_dirs_opt' : cctools_project_dirs,
+    }
+  )
 work_queue = subproject('work_queue')
 
 

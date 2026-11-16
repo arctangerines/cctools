@@ -1,2 +1,3 @@
 option('cctools_base_ccflags_opt', type: 'array', value: [])
 option('cctools_internal_ccflags_opt', type: 'array', value: [])
+option('cctools_include_dirs_opt', type: 'array', value: [])
